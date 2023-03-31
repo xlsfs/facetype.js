@@ -90,29 +90,55 @@ var convert = function(font){
 				token.x_max = Math.round(glyph.xMax * scale);
 				token.o = ""
 				if (reverseTypeface.checked) {glyph.path.commands = reverseCommands(glyph.path.commands);}
+				var tokenOArr = [];
+				var curToken = null;
 				glyph.path.commands.forEach(function(command,i){
 					if (command.type.toLowerCase() === "c") {command.type = "b";}
-					token.o += command.type.toLowerCase();
-					token.o += " "
+                    if (command.type.toLowerCase() === "m") {
+                        curToken = {o: "", posList:[], isHole: false};
+                        tokenOArr.push(curToken);
+                    }
+					curToken.o += command.type.toLowerCase();
+					curToken.o += " "
 					if (command.x !== undefined && command.y !== undefined){
-						token.o += Math.round(command.x * scale);
-						token.o += " "
-						token.o += Math.round(command.y * scale);
-						token.o += " "
+						curToken.o += Math.round(command.x * scale);
+						curToken.o += " "
+						curToken.o += Math.round(command.y * scale);
+						curToken.o += " "
 					}
 					if (command.x1 !== undefined && command.y1 !== undefined){
-						token.o += Math.round(command.x1 * scale);
-						token.o += " "
-						token.o += Math.round(command.y1 * scale);
-						token.o += " "
+						curToken.o += Math.round(command.x1 * scale);
+						curToken.o += " "
+						curToken.o += Math.round(command.y1 * scale);
+						curToken.o += " "
 					}
 					if (command.x2 !== undefined && command.y2 !== undefined){
-						token.o += Math.round(command.x2 * scale);
-						token.o += " "
-						token.o += Math.round(command.y2 * scale);
-						token.o += " "
+						curToken.o += Math.round(command.x2 * scale);
+						curToken.o += " "
+						curToken.o += Math.round(command.y2 * scale);
+						curToken.o += " "
 					}
 				});
+
+                if(tokenOArr.length > 2) {
+                    let lastShapeIdx = -1;
+                    for(var kk = 0; kk < tokenOArr.length; kk++) {
+                        let isHole = !isClockWise(tokenOArr[kk].posList);
+                        tokenOArr[kk].isHole = isHole;
+                        if(!isHole) {
+                            lastShapeIdx = kk;
+                        }
+                    }
+                    if (lastShapeIdx != -1 && tokenOArr[tokenOArr.length - 1].isHole) {
+                        var lastShape = tokenOArr.splice(lastShapeIdx, 1);
+                        tokenOArr.push(lastShape[0]);
+                    }
+                }
+
+                for(var kk = 0; kk < tokenOArr.length; kk++) {
+                    token.o += tokenOArr[kk].o;
+                }
+				
 				result.glyphs[String.fromCharCode(glyph.unicode)] = token;
 			}
         };
