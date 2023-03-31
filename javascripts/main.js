@@ -94,10 +94,10 @@ var convert = function(font){
 				var curToken = null;
 				glyph.path.commands.forEach(function(command,i){
 					if (command.type.toLowerCase() === "c") {command.type = "b";}
-                    if (command.type.toLowerCase() === "m") {
-                        curToken = {o: "", posList:[], isHole: false};
-                        tokenOArr.push(curToken);
-                    }
+					if (command.type.toLowerCase() === "m") {
+						curToken = {o: "", posList:[], isHole: false};
+						tokenOArr.push(curToken);
+					}
 					curToken.o += command.type.toLowerCase();
 					curToken.o += " "
 					if (command.x !== undefined && command.y !== undefined){
@@ -105,39 +105,51 @@ var convert = function(font){
 						curToken.o += " "
 						curToken.o += Math.round(command.y * scale);
 						curToken.o += " "
+						curToken.posList.push({
+							x: Math.round(command.x * scale), 
+							y: Math.round(command.y * scale)
+ 						})
 					}
 					if (command.x1 !== undefined && command.y1 !== undefined){
 						curToken.o += Math.round(command.x1 * scale);
 						curToken.o += " "
 						curToken.o += Math.round(command.y1 * scale);
 						curToken.o += " "
+						curToken.posList.push({
+							x: Math.round(command.x1 * scale), 
+							y: Math.round(command.y1 * scale)
+						})
 					}
 					if (command.x2 !== undefined && command.y2 !== undefined){
 						curToken.o += Math.round(command.x2 * scale);
 						curToken.o += " "
 						curToken.o += Math.round(command.y2 * scale);
 						curToken.o += " "
+						curToken.posList.push({
+							x: Math.round(command.x2 * scale), 
+							y: Math.round(command.y2 * scale)
+						})
 					}
 				});
 
-                if(tokenOArr.length > 2) {
-                    let lastShapeIdx = -1;
-                    for(var kk = 0; kk < tokenOArr.length; kk++) {
-                        let isHole = !isClockWise(tokenOArr[kk].posList);
-                        tokenOArr[kk].isHole = isHole;
-                        if(!isHole) {
-                            lastShapeIdx = kk;
-                        }
-                    }
-                    if (lastShapeIdx != -1 && tokenOArr[tokenOArr.length - 1].isHole) {
-                        var lastShape = tokenOArr.splice(lastShapeIdx, 1);
-                        tokenOArr.push(lastShape[0]);
-                    }
-                }
+				if(tokenOArr.length > 2) {
+					let lastShapeIdx = -1;
+					for(var kk = 0; kk < tokenOArr.length; kk++) {
+						let isHole = !isClockWise(tokenOArr[kk].posList);
+						tokenOArr[kk].isHole = isHole;
+						if(!isHole) {
+							lastShapeIdx = kk;
+						}
+					}
+					if (lastShapeIdx != -1 && tokenOArr[tokenOArr.length - 1].isHole) {
+						var lastShape = tokenOArr.splice(lastShapeIdx, 1);
+						tokenOArr.push(lastShape[0]);
+					}
+				}
 
-                for(var kk = 0; kk < tokenOArr.length; kk++) {
-                    token.o += tokenOArr[kk].o;
-                }
+				for(var kk = 0; kk < tokenOArr.length; kk++) {
+					token.o += tokenOArr[kk].o;
+				}
 				
 				result.glyphs[String.fromCharCode(glyph.unicode)] = token;
 			}
